@@ -9,7 +9,7 @@ function [funs, student_id] = student_sols()
 % Should a numeric value of format YYYYMMDD, e.g.
 % student_id = 19900101;
 % This value must be correct in order to generate a valid secret key.
-student_id = 19981205;
+student_id = 0;
 
 
 % ----------------------------------------
@@ -20,72 +20,60 @@ student_id = 19981205;
 % directory as this file as well as any of the standard matlab functions.
 
 
-pos=load('hip2.mat');
-
-
-    function h = gen_filter()
-        f_max=0.05; %Hz
-        f_block=0.1; %Hz
-
-        dt = 1;% s
-        f_s = 1/dt; %Hz
-
-        N = 60; %filter order
-
-        f = [0,f_max,f_block,f_s/2]/(f_s/2); %*pi rad/sample
-        a = [0,    1,      0,    0].*f*pi*f_s; %filter amplitude
-
-        h = firpm(N,f,a,'differentiator'); %TODO: This line is missing some code!
-    
-        figure
-        stem(0:N, h);
+    function [Xfilt,Pplus] = kalm_filt(Y,A,C,Q,R,x0,P0)
         
-        figure
-        [H,w]=freqz(h,1,512);
-        plot(f,a,w/pi,abs(H));
-        legend('ideal','FIR design');
+        % [Xfilt,Pplus] = kalmfilt(Y,A,C,Q,R,x0,P0)
+        % Matlab function for Kalman filtering
+        % Inputs:
+        %  Y    Measured signal, matrix of size [p,N] where N is the number
+        %       of samples and p the number of outputs
+        %  A    System dynamics matrix, size [n,n]
+        %  C    Measurement matrix, size [p,n]
+        %  Q    Covariance matrix of process noise, size [n,n]
+        %  R    Covariance matrix of measurement noise, size [p,p]
+        %  x0   Estimate of x(0), size [n,1]. Defaults to a zero vector if
+        %       not supplied.
+        %  P0   Error covariance for x(0), size [n,n]. Defaults to the
+        %       identity matrix if not supplied.
+        % Outputs:
+        % Xfilt Kalman-filtered estimate of the state, size [n,N]
+        % Pplus Covariance matrix for last sample, size [n,n]
         
+        [p,N] = size(Y);        % N = number of samples, p = number of "sensors"
+        n = length(A);          % n = system order
+        Xpred = zeros(n,N+1);   % Kalman predicted states
+        Xfilt = zeros(n,N);     % Kalman filtered states (after using the meeasurment)
         
+        if nargin < 7
+            P0=eye(n);          % Default initial covariance
+        end
+        if nargin < 6
+            x0=zeros(n,1);      % Default initial states
+        end
         
-        Nsamples=500;
-        h_euler=[1/dt, -1/dt];
-        vel.observation=conv(pos.noisy_position, h_euler)*3.6;
-        vel.observation=vel.observation(1:Nsamples);
-        vel.signal=conv(pos.true_position, h_euler)*3.6;
-        vel.signal=vel.signal(1:Nsamples);
-        t_euler=(0:Nsamples-1)/dt;
+        % Filter initialization:
+        Xpred(:,1) = x0;        % Index 1 means time 0
+        P = P0;                 % Initial covariance matrix (uncertainty)
         
-        vel.fir_obs=conv(pos.noisy_position,h)*3.6;
-        vel.fir_sig=conv(pos.true_position,h)*3.6;
-        t_filtered=(0:length(vel.fir_obs)-1)/dt;
-        
-        lc=lines(6);
-        display(lc)
-        
-        figure
-        xlabel 'Time (s)', ylabel 'Velocity (km/h)', hold on, grid on
-        axis([0 600 0 220]);
-        plot(t_euler,vel.signal,'-','Color',lc(1,:));
-        plot(t_filtered,vel.fir_obs,'-','Color',lc(2,:));
-        plot(t_filtered,vel.fir_sig,'--','Color',lc(3,:));
-        legend('Euler filter (true)','FIR filter (measured)','FIR filter (true)');
-        
-        figure
-        xlabel 'Time (s)', ylabel 'Velocity (km/h)', hold on, grid on
-        axis([0 600 0 220]);
-        plot(t_euler,vel.signal,'-','Color',lc(1,:));
-        plot(t_filtered(N/2:end)-N/2,vel.fir_obs(N/2:end),'-','Color',lc(2,:));
-        plot(t_filtered(N/2:end)-N/2,vel.fir_sig(N/2:end),'--','Color',lc(3,:));
-        legend('Euler filter (true)','FIR filter (measured)','FIR filter (true)');
-        
-        figure
-        xlabel 'Time (s)', ylabel 'Velocity (km/h)', hold on, grid on;
-        plot(t_euler,vel.observation,'Color',lc(1,:));
-        plot(t_euler,vel.signal,'--','Color',lc(2,:));
-        legend('Measured', 'True');
+        % Kalman filter iterations:
+        for t=1:N
+            % Filter update based on measurement
+            % Xfilt(:,t) = Xpred(:,t) + ...
+            Xfilt(:,t) = 0; %TODO: This line is missing some code!
+            
+            % Uncertainty update, from (11.17)
+            Pplus = 0; %TODO: This line is missing some code!
+            
+            % Prediction, from (11.19)
+            Xpred(:,t+1) = 0; %TODO: This line is missing some code!
+            
+            % From (11.20)
+            P = 0; %TODO: This line is missing some code!
+        end
     end
 
-funs.gen_filter = @gen_filter;
+funs.kalm_filt = @kalm_filt;
+
 
 % This file will return a structure with handles to the functions you have
 % implemented. You can call them if you wish, for example:
